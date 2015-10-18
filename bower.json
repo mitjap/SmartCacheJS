@@ -1,0 +1,27 @@
+{
+  "name": "SmartCacheJS",
+  "version": "0.0.1",
+  "authors": [
+    "mitjap <mitjap@gmail.com>"
+  ],
+  "main": "release/js/app.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "angular-mocks": "~1.4.7",
+    "jasmine-core": "jasmine#~2.3.4"
+  },
+  "dependencies": {
+    "angular": "~1.4.7",
+    "underscore": "~1.8.3"
+  }
+}
