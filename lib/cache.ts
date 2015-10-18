@@ -37,6 +37,8 @@ class SmartStorage<T> implements ISmartStorage<T> {
 		this.$q = $q;
 		this.localProvider = localProvider;
 		this.remoteProvider = remoteProvider;
+
+		this.pending = {};
 	}
 
 	query(params: any): ng.IPromise<T[]> {
@@ -82,7 +84,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 		if (this.isPending(key)) {
 			return this.pending[key]
 			.finally(() : ng.IPromise<void> => {
-				return this.delete(key, obj);	
+				return this.delete(key, obj);
 			})
 			.then(() => { })
 		} else {
@@ -117,7 +119,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 	 */
 	private addPending(key: string, promise: ng.IPromise<T>) : ng.IPromise<T> {
 		this.pending[key] = promise;
-		
+
 		return promise
 		// on resolve add to local storage
 		.then((obj: T) => {
@@ -125,7 +127,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 			return obj;
 		})
 		// always delete from pending
-		.finally(() => { 
+		.finally(() => {
 			delete this.pending[key];
 		});
 	}
@@ -133,7 +135,6 @@ class SmartStorage<T> implements ISmartStorage<T> {
 	private isPending(key: string) : boolean {
 		return this.pending.hasOwnProperty(key);
 	}
-
 }
 
 
