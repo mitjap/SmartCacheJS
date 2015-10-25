@@ -1,33 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
+/// <reference path="./interfaces.ts" />
 
-interface ISmartStorage<T> {
-	save(obj: T): ng.IPromise<T>;
-	query(params: any): ng.IPromise<T[]>;
-	get(key: string, allowNewRequest?: boolean): ng.IPromise<T>;
-	delete(key: string, obj: T): ng.IPromise<void>;
-}
-
-interface IRemoteObjectProvider<T> {
-	// key's and corresponding object's position should be equal
-	get(key: string[]): ng.IPromise<T[]>;
-	save(obj: T): ng.IPromise<T>;
-	update(key: string, obj: T): ng.IPromise<T>;
-	delete(key: string): ng.IPromise<void>;
-
-	queryIds(params: any): ng.IPromise<string[]>;
-}
-
-interface ILocalObjectProvider<T> {
-	hasKey(key: string) : boolean;
-	setItem(key: string, obj: T) : void;
-	getItem(key: string) : T;
-	removeItem(key: string) : void;
-	size() : number;
-}
-
-
-
-class SmartStorage<T> implements ISmartStorage<T> {
+class SmartStorage<T extends IStorageObject> implements ISmartStorage<T> {
 	$q: ng.IQService;
 
 	localProvider: ILocalObjectProvider<T>;
@@ -46,7 +20,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 	save(obj: T): ng.IPromise<T> {
 		return this.remoteProvider.save(obj)
 		.then(function(obj: T) {
-			this.localProvider.setItem((<any>obj).id, obj);
+			this.localProvider.setItem(obj.id, obj);
 			return obj;
 		});
 	}
@@ -110,8 +84,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 			this.localProvider.removeItem(key);
 		}
 
-		// HACK: suppress warning "Property 'deleted' does not exist on type 'T'."
-		(<any>obj).deleted = true;
+		obj.deleted = true;
 	}
 
 	/**
@@ -123,55 +96,26 @@ class SmartStorage<T> implements ISmartStorage<T> {
 		});
 	}
 
-	/**
-	 * Adds a promise to pending array and removes it when promise is finished.
-	 * Object is added to local provider on resolved promise.
-	 */
-	private addPending(key: string, promise: ng.IPromise<T>) : ng.IPromise<T> {
-		this.pending[key] = promise;
+  /**
+   * Adds a promise to pending array and removes it when promise is finished.
+   * Object is added to local provider on resolved promise.
+   */
+  private addPending(key: string, promise: ng.IPromise<T>) : ng.IPromise<T> {
+    this.pending[key] = promise;
 
-		return promise
-		// on resolve add to local storage
-		.then((obj: T) => {
-			this.localProvider.setItem(key, obj);
-			return obj;
-		})
-		// always delete from pending
-		.finally(() => {
-			delete this.pending[key];
-		});
-	}
+    return promise
+    // on resolve add to local storage
+    .then((obj: T) => {
+      this.localProvider.setItem(key, obj);
+      return obj;
+    })
+    // always delete from pending
+    .finally(() => {
+      delete this.pending[key];
+    });
+  }
 
-	private isPending(key: string) : boolean {
-		return this.pending.hasOwnProperty(key);
-	}
-}
-
-
-class LocalObjectProvider<T> implements ILocalObjectProvider<T> {
-	private storage: { [key: string]: T };
-
-	constructor() {
-		this.storage = {};
-	}
-
-	hasKey(key: string) : boolean {
-		return this.storage.hasOwnProperty(key);
-	}
-
-	setItem(key: string, obj: T) : void {
-		this.storage[key] = obj;
-	}
-
-	getItem(key: string) : T {
-		return this.storage[key];
-	}
-
-	removeItem(key: string) : void {
-		delete this.storage[key];
-	}
-
-	size() : number {
-		return _.size(this.storage);
-	}
+  private isPending(key: string) : boolean {
+    return this.pending.hasOwnProperty(key);
+  }
 }
