@@ -1,6 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
 
 interface ISmartStorage<T> {
+	save(obj: T): ng.IPromise<T>;
 	query(params: any): ng.IPromise<T[]>;
 	get(key: string, allowNewRequest?: boolean): ng.IPromise<T>;
 	delete(key: string, obj: T): ng.IPromise<void>;
@@ -9,7 +10,8 @@ interface ISmartStorage<T> {
 interface IRemoteObjectProvider<T> {
 	// key's and corresponding object's position should be equal
 	get(key: string[]): ng.IPromise<T[]>;
-	save(key: string, obj: T): ng.IPromise<T>;
+	save(obj: T): ng.IPromise<T>;
+	update(key: string, obj: T): ng.IPromise<T>;
 	delete(key: string): ng.IPromise<void>;
 
 	queryIds(params: any): ng.IPromise<string[]>;
@@ -39,6 +41,14 @@ class SmartStorage<T> implements ISmartStorage<T> {
 		this.remoteProvider = remoteProvider;
 
 		this.pending = {};
+	}
+
+	save(obj: T): ng.IPromise<T> {
+		return this.remoteProvider.save(obj)
+		.then(function(obj: T) {
+			this.localProvider.setItem((<any>obj).id, obj);
+			return obj;
+		});
 	}
 
 	query(params: any): ng.IPromise<T[]> {
@@ -95,7 +105,7 @@ class SmartStorage<T> implements ISmartStorage<T> {
 		}
 	}
 
-	private deleteInternal(key: string, obj: T) : void {
+	protected deleteInternal(key: string, obj: T) : void {
 		if (this.localProvider.hasKey(key)) {
 			this.localProvider.removeItem(key);
 		}
