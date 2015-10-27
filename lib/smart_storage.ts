@@ -26,9 +26,11 @@ class SmartStorage<T extends IStorageObject> implements ISmartStorage<T> {
 	}
 
 	query(params: any): ng.IPromise<T[]> {
-		return this.remoteProvider.queryIds(params)
-		.then(function(keys: string[]) {
+		return this.remoteProvider.query(params, ['id'])
+		.then(function(data: T[]) {
+			var keys = _.pluck(data, 'id');
 			// ignore keys already in local storage or pending
+
 			var missingKeys = _.reject(keys, (key) => {
 				return this.localProvider.hasKey(key) || this.isPending(key);
 			});

@@ -1,9 +1,8 @@
 /// <reference path="../typings/tsd.d.ts" />
 
 interface IStorageObject {
-	id ?: string;
+	id : string;
 	deleted ?: boolean;
-
 }
 
 interface ISmartStorage<T extends IStorageObject> {
@@ -14,13 +13,14 @@ interface ISmartStorage<T extends IStorageObject> {
 }
 
 interface IRemoteObjectProvider<T extends IStorageObject> {
-	// key's and corresponding object's position should be equal
+	/**
+	 * key's and corresponding object's position should be equal
+	 */
 	get(key: string[]): ng.IPromise<T[]>;
+	query(params: any, fields: string[]): ng.IPromise<T[]>;
 	save(obj: T): ng.IPromise<T>;
 	update(key: string, obj: T): ng.IPromise<T>;
 	delete(key: string): ng.IPromise<void>;
-
-	queryIds(params: any): ng.IPromise<string[]>;
 }
 
 interface ILocalObjectProvider<T extends IStorageObject> {
